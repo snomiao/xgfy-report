@@ -1,9 +1,14 @@
 {
   "verbose": true,
-  "ignore": ["src/**/*.spec.ts"],
-  "watch": ["src/**/*.ts"],
+  "ignore": [
+    "src/**/*.spec.ts"
+  ],
+  "watch": [
+    "src/**/*.ts",
+    "src/**/*.mjs"
+  ],
   "execMap": {
-    "ts": "node --inspect=0.0.0.0:9229 --nolazy -r ts-node/register"
+    "_ts": "node --inspect=0.0.0.0:9229 --nolazy -r ts-node/register",
+    "ts": "node --loader ts-node/esm"
   }
 }
-
