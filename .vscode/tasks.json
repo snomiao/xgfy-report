@@ -4,13 +4,21 @@
 		{
 			"type": "npm",
 			"script": "build:js",
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			},
+			"group": "build",
 			"problemMatcher": [],
 			"label": "npm: build:js",
 			"detail": "babel src --out-dir lib --extensions \".ts,.tsx\" --source-maps inline"
+		},
+		{
+			"type": "npm",
+			"script": "version",
+			"problemMatcher": [],
+			"label": "npm: version",
+			"detail": "npm version patch",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
 		}
 	]
 }
