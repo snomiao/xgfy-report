@@ -2,21 +2,25 @@
 
 import express from 'express';
 const app = express()
-const port = 3000
+const port = process.env.PORT || 5000
 const userRouter = express.Router();
 
-app.get('/', (req, res) => { res.send('GET request to the homepage') })
+// 规则(/^\/自动上报者添加 (.+)/, async (msg, [_, $1]) =>
+//     await bot.sendMessage(msg.chat.id, '喵：' + await 自动上报者添加($1.trim().split(' ')).catch(e => e.toString())))
+// 规则(/^\/自动上报 (.+)/, async (msg, [_, $1]) =>
+//     await bot.sendMessage(msg.chat.id, '喵：' + await 自动上报者添加($1.trim().split(' ')).catch(e => e.toString())))
+// 规则(/^\/上报者添加 (.+)/, async (msg, [_, $1]) =>
+//     await bot.sendMessage(msg.chat.id, '喵：' + await 上报者添加($1.trim().split(' ')).catch(e => e.toString())))
+// 规则(/^\/上报检查 (.+)/, async (msg, [_, $1]) =>
+//     await bot.sendMessage(msg.chat.id, '喵：' + await 状态抓取更新({ _id: $1.trim() })))
+// 规则(/^\/上报 (.+)/, async (msg, [_, $1]) =>
+//     await bot.sendMessage(msg.chat.id, '喵：' + await 状态上报更新({ _id: $1.trim() })))
+// 规则(/^\/找 (.+)/, async (msg, [_, $1]) =>
+//     await bot.sendMessage(msg.chat.id, '喵：' + await 找($1.trim()).catch(e => e.toString())))
+// 规则(/^\/重启/, async (msg, [_, $1]) =>
+//     await bot.sendMessage(msg.chat.id, '喵：5s后重启……').then(() => setTimeout(() => process.exit(0), 5e3)))
 
-// userRouter.get('/', async (req, res) => { res.send(JSON.stringify(await 用户表列获取())) })
-// userRouter.get('/unreported', async (req, res) => { res.send(JSON.stringify(await 未上报用户获取())) })
-// userRouter.post('/unreported', async (req, res) => { res.send(JSON.stringify(await 未上报用户上报())) })
-// userRouter.get('/autoreport', async (req, res) => { res.send(JSON.stringify(await 需上报用户获取())) })
-// userRouter.post('/autoreport', async (req, res) => { res.send(JSON.stringify(await 需上报用户上报())) })
-// userRouter.put('/autoreport/:usercode', async (req, res) => { res.send(await 用户增加(req.params.usercode.toString())) })
-// userRouter.put('/:usercode', async (req, res) => { res.send(await 用户增加(req.params.usercode.toString())) })
-// userRouter.delete('/:usercode', async (req, res) => { res.send(await 用户删除(req.params.usercode.toString())) })
-// userRouter.get('/:usercode', async (req, res) => { res.send(await 用户获取(req.params.usercode.toString())) })
-// userRouter.post('/:usercode', async (req, res) => { res.send(await 用户上报(req.params.usercode.toString())) })
+app.get('/', (req, res) => { res.send('GET request to the homepage') })
 
 const apiRouter = express.Router()
 apiRouter.get('/', (req, res) => res.send('API v1'))

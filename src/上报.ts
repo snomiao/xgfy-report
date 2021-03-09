@@ -212,10 +212,7 @@ const 上报系统构建 = async ({ 启用bot } = { 启用bot: false }) => {
 }
 export default 上报系统构建
 
-if (require.main === module) (async () => {
-    await 自动上报警报流程();
-    return '✅ DONE';
-})().then(console.log).catch(console.error)
+if (require.main === module) await 自动上报警报流程().then(console.log)
 
 export async function 自动上报警报流程() {
     const 系统 = await 上报系统构建({ 启用bot: true });
@@ -240,4 +237,5 @@ export async function 自动上报警报流程() {
         await 睡(60e3)
     }
     await 系统.退出()
+    return '✅✅'
 }

@@ -15,10 +15,18 @@
 			"problemMatcher": [],
 			"label": "npm: version",
 			"detail": "npm version patch",
+			"group": "build"
+		},
+		{
+			"type": "npm",
+			"script": "build",
 			"group": {
 				"kind": "build",
 				"isDefault": true
-			}
+			},
+			"problemMatcher": [],
+			"label": "npm: build",
+			"detail": "npm run build:types && npm run build:js"
 		}
 	]
 }
