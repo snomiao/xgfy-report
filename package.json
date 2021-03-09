@@ -1,11 +1,12 @@
 {
   "name": "xgfy-report",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "TODO",
-  "bin": "lib/index.js",
+  "bin": {
+    "xgfy-report": "lib/index.js"
+  },
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "__module": "dist/module.js",
   "scripts": {
     "type-check": "tsc --noEmit",
     "type-check:watch": "npm run type-check -- --watch",
@@ -15,7 +16,8 @@
     "build:js": "babel src --out-dir lib --extensions \".ts,.tsx\" --source-maps inline",
     "bundle": "rollup -c",
     "bundle:watch": "rollup -c --watch",
-    "version": "npm version patch",
+    "version:patch": "npm version patch",
+    "version:minor": "npm version minor",
     "postversion": "ci && git push --follow-tags",
     "publishOnly": ""
   },
