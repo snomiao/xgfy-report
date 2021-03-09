@@ -76,5 +76,5 @@ typings/
 /src/data
 
 lib
-dist
-ci2.bat
+dist 
+ci.bat

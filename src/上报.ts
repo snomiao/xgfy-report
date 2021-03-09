@@ -11,6 +11,7 @@ import snoMongoKu from 'sno-mongo-ku';
 import { HttpsProxyAgent } from 'https-proxy-agent'
 import dotenv from 'dotenv'; dotenv.config()
 import TelegramBot from 'node-telegram-bot-api';
+import { 睡 } from 'sno-utils/lib/异步';
 const _学号 = 数列生成(40, 1).map(e => (e + '').padStart(2, '0'))
 const 理院17列表 = 列差([
     ...列映(e => '17122111' + e)(_学号),
@@ -23,7 +24,6 @@ const 上报系统构建 = async ({ 启用bot } = { 启用bot: false }) => {
     // .result.filter(e=>e.message.text.match('/add'))
     const { MONGO_URI, HEART_API, ALERT_API, HTTP_PROXY } = process.env
     const db = await snoMongoKu(MONGO_URI); db.上报历史, db.上报者状态, db.上报者信息
-    const 退出 = async () => await db._client.close()
     const 通知 = async (消息: string) => (console.log('通知', 消息), await fetch(encodeURI(HEART_API.replace(/%s/g, 消息)), {
         ...HTTP_PROXY && { agent: new HttpsProxyAgent(HTTP_PROXY) }
     }).then(e => e.json()).then(e => { if (e.ok) return `✅通知：${消息}`; throw new Error('通知未成功, 返回' + JSON.stringify(e)) }))
@@ -34,7 +34,7 @@ const 上报系统构建 = async ({ 启用bot } = { 启用bot: false }) => {
         (n => (n.slice(16, 32) + n.slice(0, 16)).toUpperCase())
             (md5(`${usercode}Unifri${ts}`))
     const API请求 = async (路径: string, 表体: any, { ts = (+new Date()).toString() } = {}) =>
-        await fetch('http://xgfy.sit.edu.cn' + 路径, {
+        await fetch('http://xgfy.sit.edu.cn' + 瞄于('API请求')(路径), {
             method: 'post', body: JSON.stringify(表体),
             headers: { 'content-type': 'application/json', decodes: decodes获取(表体.usercode ?? 表体.code ?? 表体._id, ts), ts },
             ...HTTP_PROXY && { agent: new HttpsProxyAgent(HTTP_PROXY) }
@@ -48,7 +48,7 @@ const 上报系统构建 = async ({ 启用bot } = { 启用bot: false }) => {
         .catch(错误 => (db.上报者信息.单补({ _id, 错误: 错误.toString() }), `❌${_id} `));
     const 旧信息抓取更新通知 = async () => await pMap(
         await db.上报者信息.聚合([
-            { $match: { 更新于: 较早于(-30 * 86400e3) } }, { $project: { _id: 1 } }, { $sample: { size: 100 } }]).toArray(),
+            { $match: { 更新于: 较早于(-30 * 86400e3) } }, { $project: { _id: 1 } }, { $sample: { size: 25 } }]).toArray(),
         信息抓取更新, { concurrency: 3, stopOnError: false })
         .then(async 表列 => 表列.length && await 通知('信息更新' + 表列.join(' ')))
     const 状态抓取 = async ({ _id }) =>
@@ -112,51 +112,51 @@ const 上报系统构建 = async ({ 启用bot } = { 启用bot: false }) => {
     const 较早于 = (时差: number) => ({ $not: { $gt: new Date(+new Date() + 时差) } })
     const 上报异常者状态抓取更新 = async () => await pMap(
         await db.上报者状态.聚合([
-            { $match: { batchno: { $ne: 今日批号获取() }, 计划于: 较早于(0), 更新于: 较早于(-37 * 60e3 /* 约 37分钟访问一次  */ * 随机衰减()) } }, { $project: { _id: 1 } }, { $sample: { size: 100 } }]).toArray(),
+            { $match: { batchno: { $ne: 今日批号获取() }, 计划于: 较早于(0), 更新于: 较早于(-37 * 60e3 /* 约 37分钟访问一次  */ * 随机衰减()) } }, { $project: { _id: 1 } }, { $sample: { size: 25 } }]).toArray(),
         状态抓取更新, { concurrency: 3, stopOnError: false }).then(e => (`✅上报异常者状态抓取更新_x` + e?.length)).catch(console.error)
     const 上报异常者上报 = async () => await pMap(
         await db.上报者状态.聚合([
-            { $match: { batchno: { $ne: 今日批号获取() }, 计划于: 较早于(0) } }, { $sample: { size: 100 } }]).toArray(),
+            { $match: { batchno: { $ne: 今日批号获取() }, 计划于: 较早于(0) } }, { $sample: { size: 25 } }]).toArray(),
         状态上报更新, { concurrency: 3, stopOnError: false }).then(e => (`✅上报异常者上报_x` + e?.length)).catch(console.error)
     const 自动上报异常者状态抓取更新 = async () => await pMap(
         await db.上报者状态.聚合([
-            { $match: { batchno: { $ne: 今日批号获取() }, 计划于: 较早于(0), 自动: true } }, { $project: { _id: 1 } }, { $sample: { size: 100 } }]).toArray(),
+            { $match: { batchno: { $ne: 今日批号获取() }, 计划于: 较早于(0), 自动: true } }, { $project: { _id: 1 } }, { $sample: { size: 25 } }]).toArray(),
         状态抓取更新, { concurrency: 3, stopOnError: false }).then(e => (`✅自动上报异常者状态抓取更新_x` + e?.length)).catch(console.error)
     const 自动上报异常者上报 = async () => await pMap(
         await db.上报者状态.聚合([
-            { $match: { batchno: { $ne: 今日批号获取() }, 计划于: 较早于(0), 自动: true } }, { $sample: { size: 100 } }]).toArray(),
+            { $match: { batchno: { $ne: 今日批号获取() }, 计划于: 较早于(0), 自动: true } }, { $sample: { size: 25 } }]).toArray(),
         状态上报更新, { concurrency: 3, stopOnError: false }).then(e => (`✅自动上报异常者上报_x` + e?.length)).catch(console.error)
     const 上报异常者通知 = async () => await db.上报者状态.聚合([
-        { $match: { batchno: { $ne: 今日批号获取() }, 更新于: 较早于(-57 * 60e3 /* 57分钟前 */) } }, { $sample: { size: 100 } }]).toArray()
+        { $match: { batchno: { $ne: 今日批号获取() }, 更新于: 较早于(-57 * 60e3 /* 57分钟前 */) } }, { $sample: { size: 25 } }]).toArray()
         .then(async 表列 => (表列.length && await Promise.resolve(表列)
             .then(async () => await 通知('上报异常：' + 表列.map(e => 今日状态表述(e)).join(' ')))
             .then(async () => await db.上报者状态.多补(表列.map(({ _id }) => ({ _id, 异常通知批号: 今日批号获取() }))))
             .then(async () => `✅上报异常者通知_x${表列.length}`)))
     const 上报完成者通知 = async () => await db.上报者状态.聚合([
-        { $match: { batchno: { $eq: 今日批号获取() }, 通知批号: { $ne: 今日批号获取() } } }, { $sample: { size: 100 } }]).toArray()
+        { $match: { batchno: { $eq: 今日批号获取() }, 通知批号: { $ne: 今日批号获取() } } }, { $sample: { size: 25 } }]).toArray()
         .then(async 表列 => (表列.length && await Promise.resolve(表列)
             .then(async () => await 通知('上报完成：' + 表列.map(e => 今日状态表述(e)).join(' ')))
             .then(async () => await db.上报者状态.多补(表列.map(({ _id }) => ({ _id, 上报早于: new Date(), 通知批号: 今日批号获取() }))))
             .then(async () => `✅上报完成者通知_x${表列.length}`)))
     const 自动上报异常警报 = async () => await db.上报者状态.聚合([
-        { $match: { 自动: true, batchno: { $ne: 今日批号获取() }, /* 异常通知批号: { $ne: 今日批号获取() } */ } }, { $sample: { size: 100 } }]).toArray()
+        { $match: { 自动: true, batchno: { $ne: 今日批号获取() }, /* 异常通知批号: { $ne: 今日批号获取() } */ } }, { $sample: { size: 25 } }]).toArray()
         .then(async 表列 => (表列.length && await Promise.resolve(表列)
-            .then(async () => await 警报('自动上报异常：' + 表列.map(e => 今日状态表述(e) + JSON.stringify(e)).join('\n')))
+            .then(async () => await 警报('自动上报异常：' + 表列.map(e => 今日状态表述(e)).join('\n')))
             .then(async () => await db.上报者状态.多补(表列.map(({ _id }) => ({ _id, 异常通知批号: 今日批号获取() }))))
             .then(async () => `✅自动上报异常警报_x${表列.length}`)))
     const 无效上报者禁用通知 = async () => await db.上报者状态.聚合([
-        { $match: { username: null } }, { $sample: { size: 100 } }]).toArray()
+        { $match: { username: null } }, { $sample: { size: 25 } }]).toArray()
         .then(async 表列 => (表列.length && await Promise.resolve(表列)
-            .then(async () => await 通知('无效上报者禁用：' + 表列.map(e => 今日状态表述(e) + JSON.stringify(e)).join('\n')))
-            .then(async () => await db.上报者.多补(表列.map(({ _id }) => ({ _id, 删除于: new Date() }))))
+            .then(async () => await 通知('无效上报者禁用：' + 表列.map(e => 今日状态表述(e)).join('\n')))
+            .then(async () => await db.上报者.多补(表列.map(({ _id, ...表 }) => ({ _id, ...表, 删除于: new Date() }))))
             .then(async () => await Promise.all(表列.map(({ _id }) => db.上报者状态.单删({ _id }))))
             .then(async () => await 上报者添加(表列.map(({ _id }) => _id)))
         ))
     const 无效自动上报者禁用警报 = async () => await db.上报者状态.聚合([
-        { $match: { 自动: true, username: null } }, { $sample: { size: 100 } }]).toArray()
+        { $match: { 自动: true, username: null } }, { $sample: { size: 25 } }]).toArray()
         .then(async 表列 => (表列.length && await Promise.resolve(表列)
-            .then(async () => await 警报('无效自动上报者禁用：' + 表列.map(e => 今日状态表述(e) + JSON.stringify(e)).join('\n')))
-            .then(async () => await db.上报者.多补(表列.map(({ _id }) => ({ _id, 删除于: new Date() }))))
+            .then(async () => await 警报('无效自动上报者禁用：' + 表列.map(e => 今日状态表述(e)).join('\n')))
+            .then(async () => await db.上报者.多补(表列.map(({ _id }, ...表) => ({ _id, ...表, 删除于: new Date() }))))
             .then(async () => await Promise.all(表列.map(({ _id }) => db.上报者状态.单删({ _id }))))
             .then(async () => await 上报者添加(表列.map(({ _id }) => _id)))
         ))
@@ -164,6 +164,7 @@ const 上报系统构建 = async ({ 启用bot } = { 启用bot: false }) => {
     const 找 = async (搜索: string) => (await db.上报者信息.find({ $or: [{ name: new RegExp(搜索) }, { mobile: 搜索 }, { code: 搜索 }] }).limit(10).toArray())
         .map((e: any) => `${e.code || e._id} ${e.name} ${e.mobile}`).join('\n')
 
+    let tgbot退出 = null
     if (启用bot) {
         const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true })
         bot.onText(/\/自动上报者添加 (.+)/, async (msg, [_, $1]) =>
@@ -190,6 +191,15 @@ const 上报系统构建 = async ({ 启用bot } = { 启用bot: false }) => {
                 '/找 $学号 | 名字\n' +
                 '/重启\n' +
                 '/help\n'))
+        tgbot退出 = async () => {
+            await bot.stopPolling()
+            await bot.close()
+        }
+    }
+    const 退出 = async () => {
+        await db._client.close()
+        await tgbot退出()
+        console.log('系统退出');
     }
     return {
         db,
@@ -204,25 +214,30 @@ export default 上报系统构建
 
 if (require.main === module) (async () => {
     await 自动上报警报流程();
-    return '✅DONE';
+    return '✅ DONE';
 })().then(console.log).catch(console.error)
 
 export async function 自动上报警报流程() {
     const 系统 = await 上报系统构建({ 启用bot: true });
     const 自动上报者列 = process.env.NEW_AUTO_USERS.trim().split(/\s+/);
-    while (1) {
-        console.log('自动上报者添加', await 系统.自动上报者添加(自动上报者列));
-        console.log('上报者添加', await 系统.上报者添加(自动上报者列));
-        console.log('上报者添加', await 系统.上报者添加(理院17列表));
+
+    console.log('自动上报者添加', await 系统.自动上报者添加(自动上报者列));
+    console.log('上报者添加', await 系统.上报者添加(自动上报者列));
+    console.log('上报者添加', await 系统.上报者添加(理院17列表));
+    const 启动时刻 = +new Date()
+    while (+new Date() - 启动时刻 < 3600e3) { //运行1小时后退出，由docker来自动重启
         console.log('旧信息抓取更新通知', await 系统.旧信息抓取更新通知());
         console.log('自动上报异常者状态抓取更新', await 系统.自动上报异常者状态抓取更新())
         console.log('上报异常者状态抓取更新', await 系统.上报异常者状态抓取更新())
         console.log('自动上报异常者上报', await 系统.自动上报异常者上报())
         console.log('无效自动上报者禁用警报', await 系统.无效自动上报者禁用警报())
         console.log('无效上报者禁用通知', await 系统.无效上报者禁用通知())
-        console.log('自动上报异常警报', await 系统.自动上报异常警报())
-        console.log('上报异常者通知', await 系统.上报异常者通知())
+        if (new Date(+new Date() + 8 * 3600e3).getUTCHours() > 6) { //6点后才用使用警报
+            console.log('自动上报异常警报', await 系统.自动上报异常警报())
+        }
+        // console.log('上报异常者通知', await 系统.上报异常者通知())
         console.log('上报完成者通知', await 系统.上报完成者通知())
+        await 睡(60e3)
     }
     await 系统.退出()
 }
