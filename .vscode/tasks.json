@@ -11,7 +11,7 @@
 		},
 		{
 			"type": "npm",
-			"script": "version",
+			"script": "version:patch",
 			"problemMatcher": [],
 			"label": "npm: version",
 			"detail": "npm version patch",
