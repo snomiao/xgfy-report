@@ -48,7 +48,7 @@ const 上报系统构建 = async ({ 启用bot } = { 启用bot: false }) => {
         .catch(错误 => (db.上报者信息.单补({ _id, 错误: 错误.toString() }), `❌${_id} `));
     const 旧信息抓取更新通知 = async () => await pMap(
         await db.上报者信息.聚合([
-            { $match: { 更新于: 较早于(-30 * 86400e3) } }, { $project: { _id: 1 } }, { $sample: { size: 25 } }]).toArray(),
+            { $match: { 更新于: 较早于(-30 * 86400e3) } }, { $project: { _id: 1 } }, { $sample: { size: 100 } }]).toArray(),
         信息抓取更新, { concurrency: 3, stopOnError: false })
         .then(async 表列 => 表列.length && await 通知('信息更新' + 表列.join(' ')))
     const 状态抓取 = async ({ _id }) =>
@@ -112,40 +112,40 @@ const 上报系统构建 = async ({ 启用bot } = { 启用bot: false }) => {
     const 较早于 = (时差: number) => ({ $not: { $gt: new Date(+new Date() + 时差) } })
     const 上报异常者状态抓取更新 = async () => await pMap(
         await db.上报者状态.聚合([
-            { $match: { batchno: { $ne: 今日批号获取() }, 计划于: 较早于(0), 更新于: 较早于(-37 * 60e3 /* 约 37分钟访问一次  */ * 随机衰减()) } }, { $project: { _id: 1 } }, { $sample: { size: 25 } }]).toArray(),
+            { $match: { batchno: { $ne: 今日批号获取() }, 计划于: 较早于(0), 更新于: 较早于(-37 * 60e3 /* 约 37分钟访问一次  */ * 随机衰减()) } }, { $project: { _id: 1 } }, { $sample: { size: 100 } }]).toArray(),
         状态抓取更新, { concurrency: 3, stopOnError: false }).then(e => (`✅上报异常者状态抓取更新_x` + e?.length)).catch(console.error)
     const 上报异常者上报 = async () => await pMap(
         await db.上报者状态.聚合([
-            { $match: { batchno: { $ne: 今日批号获取() }, 计划于: 较早于(0) } }, { $sample: { size: 25 } }]).toArray(),
+            { $match: { batchno: { $ne: 今日批号获取() }, 计划于: 较早于(0) } }, { $sample: { size: 100 } }]).toArray(),
         状态上报更新, { concurrency: 3, stopOnError: false }).then(e => (`✅上报异常者上报_x` + e?.length)).catch(console.error)
     const 自动上报异常者状态抓取更新 = async () => await pMap(
         await db.上报者状态.聚合([
-            { $match: { batchno: { $ne: 今日批号获取() }, 计划于: 较早于(0), 自动: true } }, { $project: { _id: 1 } }, { $sample: { size: 25 } }]).toArray(),
+            { $match: { batchno: { $ne: 今日批号获取() }, 计划于: 较早于(0), 自动: true } }, { $project: { _id: 1 } }, { $sample: { size: 100 } }]).toArray(),
         状态抓取更新, { concurrency: 3, stopOnError: false }).then(e => (`✅自动上报异常者状态抓取更新_x` + e?.length)).catch(console.error)
     const 自动上报异常者上报 = async () => await pMap(
         await db.上报者状态.聚合([
-            { $match: { batchno: { $ne: 今日批号获取() }, 计划于: 较早于(0), 自动: true } }, { $sample: { size: 25 } }]).toArray(),
+            { $match: { batchno: { $ne: 今日批号获取() }, 计划于: 较早于(0), 自动: true } }, { $sample: { size: 100 } }]).toArray(),
         状态上报更新, { concurrency: 3, stopOnError: false }).then(e => (`✅自动上报异常者上报_x` + e?.length)).catch(console.error)
     const 上报异常者通知 = async () => await db.上报者状态.聚合([
-        { $match: { batchno: { $ne: 今日批号获取() }, 更新于: 较早于(-57 * 60e3 /* 57分钟前 */) } }, { $sample: { size: 25 } }]).toArray()
+        { $match: { batchno: { $ne: 今日批号获取() }, 更新于: 较早于(-57 * 60e3 /* 57分钟前 */) } }, { $sample: { size: 100 } }]).toArray()
         .then(async 表列 => (表列.length && await Promise.resolve(表列)
             .then(async () => await 通知('上报异常：' + 表列.map(e => 今日状态表述(e)).join(' ')))
             .then(async () => await db.上报者状态.多补(表列.map(({ _id }) => ({ _id, 异常通知批号: 今日批号获取() }))))
             .then(async () => `✅上报异常者通知_x${表列.length}`)))
     const 上报完成者通知 = async () => await db.上报者状态.聚合([
-        { $match: { batchno: { $eq: 今日批号获取() }, 通知批号: { $ne: 今日批号获取() } } }, { $sample: { size: 25 } }]).toArray()
+        { $match: { batchno: { $eq: 今日批号获取() }, 通知批号: { $ne: 今日批号获取() } } }, { $sample: { size: 100 } }]).toArray()
         .then(async 表列 => (表列.length && await Promise.resolve(表列)
             .then(async () => await 通知('上报完成：' + 表列.map(e => 今日状态表述(e)).join(' ')))
             .then(async () => await db.上报者状态.多补(表列.map(({ _id }) => ({ _id, 上报早于: new Date(), 通知批号: 今日批号获取() }))))
             .then(async () => `✅上报完成者通知_x${表列.length}`)))
     const 自动上报异常警报 = async () => await db.上报者状态.聚合([
-        { $match: { 自动: true, batchno: { $ne: 今日批号获取() }, /* 异常通知批号: { $ne: 今日批号获取() } */ } }, { $sample: { size: 25 } }]).toArray()
+        { $match: { 自动: true, batchno: { $ne: 今日批号获取() }, /* 异常通知批号: { $ne: 今日批号获取() } */ } }, { $sample: { size: 100 } }]).toArray()
         .then(async 表列 => (表列.length && await Promise.resolve(表列)
             .then(async () => await 警报('自动上报异常：' + 表列.map(e => 今日状态表述(e)).join('\n')))
             .then(async () => await db.上报者状态.多补(表列.map(({ _id }) => ({ _id, 异常通知批号: 今日批号获取() }))))
             .then(async () => `✅自动上报异常警报_x${表列.length}`)))
     const 无效上报者禁用通知 = async () => await db.上报者状态.聚合([
-        { $match: { username: null } }, { $sample: { size: 25 } }]).toArray()
+        { $match: { username: null } }, { $sample: { size: 100 } }]).toArray()
         .then(async 表列 => (表列.length && await Promise.resolve(表列)
             .then(async () => await 通知('无效上报者禁用：' + 表列.map(e => 今日状态表述(e)).join('\n')))
             .then(async () => await db.上报者.多补(表列.map(({ _id, ...表 }) => ({ _id, ...表, 删除于: new Date() }))))
@@ -153,7 +153,7 @@ const 上报系统构建 = async ({ 启用bot } = { 启用bot: false }) => {
             .then(async () => await 上报者添加(表列.map(({ _id }) => _id)))
         ))
     const 无效自动上报者禁用警报 = async () => await db.上报者状态.聚合([
-        { $match: { 自动: true, username: null } }, { $sample: { size: 25 } }]).toArray()
+        { $match: { 自动: true, username: null } }, { $sample: { size: 100 } }]).toArray()
         .then(async 表列 => (表列.length && await Promise.resolve(表列)
             .then(async () => await 警报('无效自动上报者禁用：' + 表列.map(e => 今日状态表述(e)).join('\n')))
             .then(async () => await db.上报者.多补(表列.map(({ _id }, ...表) => ({ _id, ...表, 删除于: new Date() }))))
