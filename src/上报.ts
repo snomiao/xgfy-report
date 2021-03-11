@@ -106,12 +106,12 @@ async function 上报系统构建({ 启用bot } = { 启用bot: false }) {
         .then(async () => `✅上报者添加_x${上报者列.length}`);
     const 自动上报者添加 = async (上报者列: string[]) => await db.上报者.多补(上报者列.map(_id => ({ _id, 自动: true })))
         .then(async () => await db.上报者.aggregate([{ $match: { 删除于: null } }, { $merge: { into: '上报者状态' } }]).next())
-        .then(async () => `✅自动上报者添加_x${上报者列.length}`);
+        .then(async () => `✅自动上报者添加_x${上报者列.length} 列：${上报者列.join(' ')}`);
     const 状态抓取更新 = async ({ _id }) => await 状态抓取({ _id })
         .then(async ({ _id, 状态, 历史 }) => (await Promise.all([
             db.上报者状态.单补({ _id, ...状态, 更新于: new Date(), 错误: null }),
             db.上报历史.多补(历史.map(({ id, ...表 }) => ({ _id: id, ...表, 更新于: new Date() }))),
-        ]), `✅${_id}`))
+        ]), 今日状态表述({ _id, ...状态 })))
         .catch(错误 => (db.上报者状态.单补({ _id, 错误 }), `❌${_id} ${错误.toString()}`));
     const 随机衰减 = () => (1 - Math.random() / 6);
     const 约晚于 = (时差: number) => new Date(+new Date() + (时差 * 随机衰减()));
@@ -177,34 +177,42 @@ async function 上报系统构建({ 启用bot } = { 启用bot: false }) {
         ));
     const 无效自动上报者禁用警报 = async () => await db.上报者状态.聚合([
         { $match: { 自动: true, username: null } }, { $sample: { size: 100 } }
-    ]).toArray()
-        .then(async (表列) => (表列.length && await Promise.resolve(表列)
-            .then(async () => await 警报('无效自动上报者禁用：' + 表列.map(e => 今日状态表述(e)).join('\n')))
-            .then(async () => await db.上报者.多补(表列.map(({ _id }, ...表) => ({ _id, ...表, 删除于: new Date() }))))
-            .then(async () => await Promise.all(表列.map(({ _id }) => db.上报者状态.单删({ _id }))))
-            .then(async () => await 上报者添加(表列.map(({ _id }) => _id)))
-        ));
-    const 找 = async (搜索: string) => (await db.上报者信息.find({ $or: [{ name: new RegExp(搜索) }, { mobile: 搜索 }, { code: 搜索 }] }).limit(10).toArray())
-        .map((e: any) => `${e.code || e._id} ${e.name} ${e.mobile}`).join('\n');
-    let tgbot退出 = null;
+    ]).toArray().then(async (表列) => (表列.length && await Promise.resolve(表列)
+        .then(async () => await 警报('无效自动上报者禁用：' + 表列.map(e => 今日状态表述(e)).join('\n')))
+        .then(async () => await db.上报者.多补(表列.map(({ _id }, ...表) => ({ _id, ...表, 删除于: new Date() }))))
+        .then(async () => await Promise.all(表列.map(({ _id }) => db.上报者状态.单删({ _id }))))
+        .then(async () => await 上报者添加(表列.map(({ _id }) => _id)))
+    ))
+
+    const 查找 = async (搜索: string) => await db.上报者信息.find({ $or: [{ name: new RegExp(搜索) }, { mobile: 搜索 }, { code: 搜索 }] }).limit(10).toArray()
+    const 自动上报 = async (搜索: string) => await (await pMap(await 查找(搜索), async ({ _id }) => await 自动上报者添加([_id]))).join('')
+    const 上报检查 = async (搜索: string) => await (await pMap(await 查找(搜索), async ({ _id }) => await 状态抓取更新({ _id }))).join('')
+    const 上报 = async (搜索: string) => await pMap(await 查找(搜索), async ({ _id }) => await 状态上报更新({ _id })).then(async () => await 上报检查(搜索))
+    const 找 = async (搜索: string) => (await 查找(搜索)).map((e: any) => `${e.code || e._id} ${e.name} ${e.mobile}`).join('\n')
+
+    let tgbot退出 = null
     if (启用bot) {
         const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
-        bot.onText(/\/自动上报者添加 (.+)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await 自动上报者添加($1.trim().split(' ')).catch(e => e.toString())));
-        bot.onText(/\/自动上报 (.+)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await 自动上报者添加($1.trim().split(' ')).catch(e => e.toString())));
-        bot.onText(/\/上报者添加 (.+)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await 上报者添加($1.trim().split(' ')).catch(e => e.toString())));
-        bot.onText(/\/上报检查 (.+)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await 状态抓取更新({ _id: $1.trim() })));
-        bot.onText(/\/上报 (.+)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await 状态上报更新({ _id: $1.trim() })));
-        bot.onText(/\/找 (.+)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await 找($1.trim()).catch(e => e.toString())));
-        bot.onText(/\/重启/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：5s后重启……').then(() => setTimeout(() => process.exit(0), 5e3)));
+        bot.onText(/\/自动上报者添加 (.+)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await 自动上报者添加($1.trim().split(' ')).catch(e => e.toString())))
+        bot.onText(/\/自动上报 (.+)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await 自动上报($1.trim()).catch(e => e.toString())))
+        bot.onText(/\/自动上报者检查/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await (await pMap(await db.上报者状态.多查列({ 自动: true }), async ({ _id }) => await 状态抓取更新({ _id }))).join(' ')))
+        bot.onText(/\/上报者添加 (.+)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await 上报者添加($1.trim().split(' ')).catch(e => e.toString())))
+        bot.onText(/\/上报检查 (.+)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await 上报检查($1.trim())))
+        bot.onText(/\/上报 (.+)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await 上报($1.trim())))
+        bot.onText(/\/找 (.+)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await 找($1.trim()).catch(e => e.toString())))
+        bot.onText(/\/重启/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：5s后重启……').then(() => setTimeout(() => process.exit(0), 5e3)))
+        bot.onText(/\/ping/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵！'))
         bot.onText(/\/help/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：使用方法：\n' +
-            '/自动上报者添加 $学号\n' +
-            '/自动上报 $学号\n' +
-            '/上报者添加 $学号\n' +
-            '/上报检查 $学号\n' +
-            '/上报 $学号\n' +
-            '/找 $学号 | 名字\n' +
+            '/自动上报者添加 _学号\n' +
+            '/上报者添加 _学号\n' +
+            '/自动上报 _学号|名字\n' +
+            '/自动上报者检查\n' +
+            '/上报检查 _学号|名字\n' +
+            '/上报 _学号|名字\n' +
+            '/找 _学号|名字\n' +
+            '/ping\n' +
             '/重启\n' +
-            '/help\n'));
+            '/help\n'))
         tgbot退出 = async () => {
             await bot.stopPolling();
             await bot.close();
@@ -213,8 +221,8 @@ async function 上报系统构建({ 启用bot } = { 启用bot: false }) {
     const 退出 = async () => {
         await db._client.close();
         await tgbot退出();
-        console.log('系统退出');
-    };
+        console.log('系统退出')
+    }
     return {
         db,
         自动上报者添加, 上报者添加, 找,
@@ -241,7 +249,7 @@ export async function 自动上报警报流程() {
         console.log('自动上报异常者上报', await 系统.自动上报异常者上报())
         console.log('无效自动上报者禁用警报', await 系统.无效自动上报者禁用警报())
         console.log('无效上报者禁用通知', await 系统.无效上报者禁用通知())
-        if (new Date(+new Date() + 8 * 3600e3).getUTCHours() > 6) { //6点后才用使用警报
+        if (new Date(+new Date() + 8 * 3600e3).getUTCHours() > 3) { //3点后才用使用警报
             console.log('自动上报异常警报', await 系统.自动上报异常警报())
         }
         // console.log('上报异常者通知', await 系统.上报异常者通知())
