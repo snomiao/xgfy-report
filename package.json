@@ -1,6 +1,6 @@
 {
   "name": "xgfy-report",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "TODO",
   "bin": {
     "xgfy-report": "lib/index.js"
