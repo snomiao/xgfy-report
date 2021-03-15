@@ -110,6 +110,12 @@ async function 上报系统构建({ 启用bot } = { 启用bot: false }) {
     const 保护上报者添加 = async (上报者列: string[]) => await db.上报者.多补(上报者列.map(_id => ({ _id, 保护: true })))
         .then(async () => await db.上报者.aggregate([{ $match: { 删除于: null } }, { $merge: { into: '上报者状态' } }]).next())
         .then(async () => `✅保护上报者添加_x${上报者列.length} 列：${上报者列.join(' ')}`);
+    const 自动上报者移除 = async (上报者列: string[]) => await db.上报者.多补(上报者列.map(_id => ({ _id, 自动: false })))
+        .then(async () => await db.上报者.aggregate([{ $match: { 删除于: null } }, { $merge: { into: '上报者状态' } }]).next())
+        .then(async () => `✅自动上报者移除_x${上报者列.length} 列：${上报者列.join(' ')}`);
+    const 保护上报者移除 = async (上报者列: string[]) => await db.上报者.多补(上报者列.map(_id => ({ _id, 保护: false })))
+        .then(async () => await db.上报者.aggregate([{ $match: { 删除于: null } }, { $merge: { into: '上报者状态' } }]).next())
+        .then(async () => `✅保护上报者移除_x${上报者列.length} 列：${上报者列.join(' ')}`);
     const 状态抓取更新 = async ({ _id }) => await 状态抓取({ _id })
         .then(async ({ _id, 状态, 历史 }) => (await Promise.all([
             db.上报者状态.单补({ _id, ...状态, 更新于: new Date(), 错误: null }),
@@ -202,6 +208,8 @@ async function 上报系统构建({ 启用bot } = { 启用bot: false }) {
     const 查找 = async (搜索: string) => await db.上报者信息.find({ $or: [{ name: new RegExp(搜索) }, { mobile: 搜索 }, { code: 搜索 }] }).limit(10).toArray()
     const 自动上报 = async (搜索: string) => (await pMap(await 查找(搜索), async ({ _id }) => await 自动上报者添加([_id]))).join('')
     const 保护上报 = async (搜索: string) => (await pMap(await 查找(搜索), async ({ _id }) => await 保护上报者添加([_id]))).join('')
+    const 自动上报移除 = async (搜索: string) => (await pMap(await 查找(搜索), async ({ _id }) => await 自动上报者移除([_id]))).join('')
+    const 保护上报移除 = async (搜索: string) => (await pMap(await 查找(搜索), async ({ _id }) => await 保护上报者移除([_id]))).join('')
     const 上报检查 = async (搜索: string) => (await pMap(await 查找(搜索), async ({ _id }) => await 状态抓取更新({ _id }))).join('')
     const 上报 = async (搜索: string) => await pMap(await 查找(搜索), async ({ _id }) => await 状态上报更新({ _id })).then(async () => await 上报检查(搜索))
     const 找 = async (搜索: string) => (await 查找(搜索)).map((e: any) => `${e.code || e._id} ${e.name} ${e.mobile}`).join('\n')
@@ -211,9 +219,11 @@ async function 上报系统构建({ 启用bot } = { 启用bot: false }) {
         const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
         bot.onText(/\/自动上报者添加 (.+)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await 自动上报者添加($1.trim().split(' ')).catch(e => e.toString())))
         bot.onText(/\/自动上报 (.+)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await 自动上报($1.trim()).catch(e => e.toString())))
+        bot.onText(/\/自动上报移除 (.+)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await 自动上报移除($1.trim()).catch(e => e.toString())))
         bot.onText(/\/自动上报者检查/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + (await pMap(await db.上报者状态.多查列({ 自动: true }), async ({ _id }) => await 状态抓取更新({ _id }))).join(' ')))
         bot.onText(/\/保护上报者添加 (.+)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await 保护上报者添加($1.trim().split(' ')).catch(e => e.toString())))
         bot.onText(/\/保护上报 (.+)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await 保护上报($1.trim()).catch(e => e.toString())))
+        bot.onText(/\/保护上报移除 (.+)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await 保护上报移除($1.trim()).catch(e => e.toString())))
         bot.onText(/\/保护上报者检查/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + (await pMap(await db.上报者状态.多查列({ 保护: true }), async ({ _id }) => await 状态抓取更新({ _id }))).join(' ')))
         bot.onText(/\/上报者添加 (.+)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await 上报者添加($1.trim().split(' ')).catch(e => e.toString())))
         bot.onText(/\/上报检查 (.+)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await 上报检查($1.trim())))
@@ -223,15 +233,17 @@ async function 上报系统构建({ 启用bot } = { 启用bot: false }) {
         bot.onText(/\/ping/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵！'))
         bot.onText(/\/help/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：使用方法：\n' +
             '/自动上报者添加 _学号\n' +
-            '/自动上报 _学号|名字\n' +
+            '/自动上报移除 _学号或名字\n' +
+            '/自动上报 _学号或名字\n' +
             '/自动上报者检查\n' +
             '/保护上报者添加 _学号\n' +
-            '/保护上报 _学号|名字\n' +
+            '/保护上报移除 _学号或名字\n' +
+            '/保护上报 _学号或名字\n' +
             '/保护上报者检查\n' +
             '/上报者添加 _学号\n' +
-            '/上报检查 _学号|名字\n' +
-            '/上报 _学号|名字\n' +
-            '/找 _学号|名字\n' +
+            '/上报检查 _学号或名字\n' +
+            '/上报 _学号或名字\n' +
+            '/找 _学号或名字\n' +
             '/ping\n' +
             '/重启\n' +
             '/help\n'))
@@ -250,7 +262,7 @@ async function 上报系统构建({ 启用bot } = { 启用bot: false }) {
         自动上报者添加, 上报者添加, 找,
         通知, 警报, 退出,
         保护上报异常者上报,
-        旧信息抓取更新通知, 状态抓取更新, 信息抓取更新, 状态上报更新,保护上报异常通知,
+        旧信息抓取更新通知, 状态抓取更新, 信息抓取更新, 状态上报更新, 保护上报异常通知,
         上报异常者状态抓取更新, 上报异常者上报, 自动上报异常者状态抓取更新, 自动上报异常者上报,
         无效上报者禁用通知, 无效自动上报者禁用警报, 自动上报异常警报, 上报异常者通知, 上报完成者通知
     };
