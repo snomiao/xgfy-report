@@ -104,10 +104,10 @@ async function 上报系统构建({ 启用bot } = { 启用bot: false }) {
         .then(async () => await db.上报者.aggregate([{ $match: { 删除于: null } }, { $merge: { into: '上报者状态' } }]).next())
         .then(async () => await db.上报者.aggregate([{ $match: { 删除于: null } }, { $merge: { into: '上报者信息' } }]).next())
         .then(async () => `✅上报者添加_x${上报者列.length}`);
-    const 自动上报者添加 = async (上报者列: string[]) => await db.上报者.多补(上报者列.map(_id => ({ _id, 自动: true })))
+    const 自动上报者添加 = async (上报者列: string[]) => await db.上报者.多补(上报者列.map(_id => ({ _id, 自动: true, 删除于: null }))) // 解除删除标记
         .then(async () => await db.上报者.aggregate([{ $match: { 删除于: null } }, { $merge: { into: '上报者状态' } }]).next())
         .then(async () => `✅自动上报者添加_x${上报者列.length} 列：${上报者列.join(' ')}`);
-    const 保护上报者添加 = async (上报者列: string[]) => await db.上报者.多补(上报者列.map(_id => ({ _id, 保护: true })))
+    const 保护上报者添加 = async (上报者列: string[]) => await db.上报者.多补(上报者列.map(_id => ({ _id, 保护: true, 删除于: null }))) // 解除删除标记
         .then(async () => await db.上报者.aggregate([{ $match: { 删除于: null } }, { $merge: { into: '上报者状态' } }]).next())
         .then(async () => `✅保护上报者添加_x${上报者列.length} 列：${上报者列.join(' ')}`);
     const 自动上报者移除 = async (上报者列: string[]) => await db.上报者.多补(上报者列.map(_id => ({ _id, 自动: false })))
