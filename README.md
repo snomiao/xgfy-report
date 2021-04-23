@@ -4,4 +4,6 @@
 
 功能：通过 Telegram Bot 管理疫情上报人员名单，实行每日上报情况自动检查，上报异常自动通知。
 
+技术架构：Typescript, Node.js, Babel, docker-compose, express-api, telegram-bot, sftp-sync
+
 雪星 于 2021 春
