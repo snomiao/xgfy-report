@@ -18,7 +18,7 @@
     "bundle:watch": "rollup -c --watch",
     "build+patch": "npm run build && npm version patch",
     "build+minor": "npm run build && npm version minor",
-    "postversion": "./ci.bat && git push --follow-tags",
+    "postversion": "ci.bat && git push --follow-tags",
     "publishOnly": ""
   },
   "repository": {
