@@ -8,8 +8,8 @@
   "scripts": {
     "ci": "git push root@calif.snomiao.com:/root/xgfy-report.git && ssh root@calif.snomiao.com rm -rf /root/xgfy-report/ && ssh root@calif.snomiao.com git clone /root/xgfy-report.git && scp .env root@calif.snomiao.com:/root/xgfy-report/ && ssh root@calif.snomiao.com bash /root/xgfy-report/ci.sh",
     "start": "node --experimental-specifier-resolution=node .",
-    "type-check": "tsc --noEmit",
-    "type-check:watch": "npm run type-check -- --watch",
+    "tsc": "tsc --noEmit",
+    "tsc:w": "npm run tsc -- --watch",
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "babel src --out-dir lib --extensions \".ts,.tsx\" --source-maps inline",
     "build": "npm run build:types && npm run build:js",

@@ -5,9 +5,6 @@ import { 今日batchno获取 } from './api-xgfy'
 (await import('dotenv')).config()
 const main = (await import('es-main')).default(import.meta)
 
-// await db.上报v2.并行聚合更新([{ $match: { batchno: { $ne: 今日batchno获取() } } }],
-//     上报函数
-//     , { 并行数: 8, 止于错: false })
 const 用户合集 = db.上报v2
 const 用户列 = (process.env.OLD_AUTO_USERS + ' ' + process.env.NEW_AUTO_USERS).split(/\s+/)
 const 现在HK小时数 = () => new Date(+new Date() + 8 * 3600e3).getUTCHours();
