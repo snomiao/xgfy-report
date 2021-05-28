@@ -6,7 +6,7 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "ci": "git push root@calif.snomiao.com:/root/xgfy-report.git && ssh root@calif.snomiao.com rm -rf /root/xgfy-report/ && ssh root@calif.snomiao.com git clone /root/xgfy-report.git && scp .env root@calif.snomiao.com:/root/xgfy-report/ && ssh root@calif.snomiao.com bash /root/xgfy-report/ci.sh",
+    "ci": "git push root@calif.snomiao.com:/root/xgfy-report.git && ssh root@calif.snomiao.com rm -rf /root/xgfy-report/ && ssh root@calif.snomiao.com git clone /root/xgfy-report.git && scp .env root@calif.snomiao.com:/root/xgfy-report/ && ssh root@calif.snomiao.com bash /root/xgfy-report/ci-remote.sh",
     "start": "node --experimental-specifier-resolution=node .",
     "tsc": "tsc --noEmit",
     "tsc:w": "npm run tsc -- --watch",
