@@ -5,6 +5,7 @@ ADD package*.json ./
 RUN npm ci
 # ADD src src
 # RUN npm run build
+ADD .env /app/
 ADD lib lib
 ENV NODE_ENV=production
 USER node

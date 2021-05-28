@@ -1,23 +1,22 @@
 {
   "name": "xgfy-report",
-  "version": "0.2.3",
+  "version": "2.0.0",
   "description": "TODO",
-  "bin": {
-    "xgfy-report": "lib/index.js"
-  },
+  "type": "module",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "start": "node --loader ts-node/esm.mjs --experimental-top-level-await src/index.ts",
+    "ci": "git push root@calif.snomiao.com:/root/xgfy-report.git && ssh root@calif.snomiao.com rm -rf /root/xgfy-report/ && ssh root@calif.snomiao.com git clone /root/xgfy-report.git && scp .env root@calif.snomiao.com:/root/xgfy-report/ && ssh root@calif.snomiao.com bash /root/xgfy-report/ci.sh",
+    "start": "node --experimental-specifier-resolution=node .",
     "type-check": "tsc --noEmit",
     "type-check:watch": "npm run type-check -- --watch",
-    "build": "npm run build:types && npm run build:js",
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "babel src --out-dir lib --extensions \".ts,.tsx\" --source-maps inline",
-    "bundle": "rollup -c",
-    "bundle:watch": "rollup -c --watch",
+    "build": "npm run build:types && npm run build:js",
     "build+patch": "npm run build && npm version patch",
     "build+minor": "npm run build && npm version minor",
+    "bundle": "rollup -c",
+    "bundle:watch": "rollup -c --watch",
     "postversion": "ci.bat && git push --follow-tags",
     "publishOnly": ""
   },
@@ -62,6 +61,7 @@
   "dependencies": {
     "@types/node": "^14.14.32",
     "dotenv": "^8.2.0",
+    "es-main": "^1.0.2",
     "express": "^4.17.1",
     "https-proxy-agent": "^5.0.0",
     "md5": "^2.3.0",
@@ -72,7 +72,7 @@
     "node-telegram-bot-api": "^0.51.0",
     "oicq": "^1.16.0",
     "p-map": "^4.0.0",
-    "sno-mongo-ku": "^2.3.0",
+    "sno-mongo-ku": "^2.5.1",
     "sno-utils": "^0.0.5",
     "ts-node": "^9.1.1"
   },

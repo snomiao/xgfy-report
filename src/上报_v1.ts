@@ -21,7 +21,8 @@ const 理院17列表 = 列差([
     ...列映(e => '17122111' + e)(_学号),
 ], '1712211125|1712231219|1712211137|1712211231|1712231140|1712211217'.split('|'))
 
-if (require.main === module) 自动上报警报流程().then(console.log)
+const main = (await import('es-main')).default(import.meta);
+if (main) 自动上报警报流程().then(console.log)
 
 async function 上报系统构建({ 启用bot } = { 启用bot: false }) {
     // .result.filter(e=>e.message.text.match('/add'))
@@ -31,18 +32,20 @@ async function 上报系统构建({ 启用bot } = { 启用bot: false }) {
     //     console.log('系统退出')
     //     db._client.close()
     // })
-    const 通知 = async (消息: string) => (console.log('通知', 消息), await fetch(encodeURI(HEART_API.replace(/%s/g, 消息)), {
-        ...HTTP_PROXY && { agent: new HttpsProxyAgent(HTTP_PROXY) }
-    }).then(e => e.json()).then(e => {
-        if (e.ok)
-            return `✅通知：${消息}`; throw new Error('通知未成功, 返回' + JSON.stringify(e));
-    }));
-    const 警报 = async (消息: string) => (console.log('警报', 消息), await fetch(encodeURI(ALERT_API.replace(/%s/g, 消息)), {
-        ...HTTP_PROXY && { agent: new HttpsProxyAgent(HTTP_PROXY) }
-    }).then(e => e.json()).then(e => {
-        if (e.ok)
-            return `❌警报：${消息}`; throw new Error('警报未成功, 返回' + JSON.stringify(e));
-    }));
+    const 通知 = (msg) => { console.info(msg) }
+    const 警报 = (msg) => { console.warn(msg) }
+    // const 通知 = async (消息: string) => (console.log('通知', 消息), await fetch(encodeURI(HEART_API.replace(/%s/g, 消息)), {
+    //     ...HTTP_PROXY && { agent: new HttpsProxyAgent(HTTP_PROXY) }
+    // }).then(e => e.json()).then(e => {
+    //     if (e.ok)
+    //         return `✅通知：${消息}`; throw new Error('通知未成功, 返回' + JSON.stringify(e));
+    // }));
+    // const 警报 = async (消息: string) => (console.log('警报', 消息), await fetch(encodeURI(ALERT_API.replace(/%s/g, 消息)), {
+    //     ...HTTP_PROXY && { agent: new HttpsProxyAgent(HTTP_PROXY) }
+    // }).then(e => e.json()).then(e => {
+    //     if (e.ok)
+    //         return `❌警报：${消息}`; throw new Error('警报未成功, 返回' + JSON.stringify(e));
+    // }));
     const decodes获取 = (usercode: string, ts: string) => (n => (n.slice(16, 32) + n.slice(0, 16)).toUpperCase())(md5(`${usercode}Unifri${ts}`));
     const API请求 = async (路径: string, 表体: any, { ts = (+new Date()).toString() } = {}) => {
         瞄于('API请求')(`${路径}#${JSON.stringify(表体)}`);
@@ -50,7 +53,12 @@ async function 上报系统构建({ 启用bot } = { 启用bot: false }) {
             method: 'post', body: JSON.stringify(表体),
             headers: { 'content-type': 'application/json', decodes: decodes获取(表体.usercode ?? 表体.code ?? 表体._id, ts), ts },
             ...HTTP_PROXY && { agent: new HttpsProxyAgent(HTTP_PROXY) }
-        }).then(e => e.json());
+        })
+            .then(e => e.json())
+            .then(e => {
+                console.log(`API请求 ${路径}#${JSON.stringify(表体)}` + 'API请求结果' + e)
+                return e
+            })
     };
     const 信息抓取更新 = async ({ _id }) => await API请求('/report/report/selectByCode', { code: _id })
         .then(返回JSON => {
@@ -124,13 +132,16 @@ async function 上报系统构建({ 启用bot } = { 启用bot: false }) {
         .catch(错误 => (db.上报者状态.单补({ _id, 错误 }), `❌${_id} ${错误.toString()}`));
     const 随机衰减 = () => (1 - Math.random() / 6);
     const 约晚于 = (时差: number) => new Date(+new Date() + (时差 * 随机衰减()));
-    const 状态上报更新 = async ({ _id, ...状态 }) => await (状态.batchno ? Promise.resolve({ _id, ...状态 }) : 状态抓取({ _id }))
-        .then(状态上报)
-        .then(({ _id, ...其它 }) => db.上报者状态.单补({
-            _id, ...其它,
-            计划时刻: new Date(+new Date() + (6 - Math.random()) * 3600e3) // 成功了就计划 5-6 hour 之后再试一次
-        }))
-        .catch(错误 => (db.上报者状态.单补({ _id, 错误, 计划于: 约晚于(15 * 60e3) }), `❌${_id} ` + 错误.toString()));
+    const 状态上报更新 = async ({ _id, ...状态 }) => {
+        console.log('状态上报更新', _id)
+        return await (状态.batchno ? Promise.resolve({ _id, ...状态 }) : 状态抓取({ _id }))
+            .then(状态上报)
+            .then(({ _id, ...其它 }) => db.上报者状态.单补({
+                _id, ...其它,
+                计划时刻: new Date(+new Date() + (6 - Math.random()) * 3600e3) // 成功了就计划 5-6 hour 之后再试一次
+            }))
+            .catch(错误 => (db.上报者状态.单补({ _id, 错误, 计划于: 约晚于(15 * 60e3) }), `❌${_id} ` + 错误.toString()));
+    };
     const 今日批号获取 = () => parseInt(new Date(+new Date() + 8 * 3600e3 /* 北京时间 */).toISOString().replace(/\D/g, '').slice(0, 8));
     const 今日状态表述 = ({ _id, ...表 }) => (表?.batchno === 今日批号获取() ? "✅" : "❌") + (表?.username ?? 表.name ?? _id);
     const 较早于 = (时差: number) => ({ $not: { $gt: new Date(+new Date() + 时差) } });
@@ -149,11 +160,14 @@ async function 上报系统构建({ 启用bot } = { 启用bot: false }) {
             { $match: { batchno: { $ne: 今日批号获取() }, 计划于: 较早于(0), 自动: true } }, { $project: { _id: 1 } }, { $sample: { size: 100 } }
         ]).toArray(),
         状态抓取更新, { concurrency: 3, stopOnError: false }).then(e => (`✅自动上报异常者状态抓取更新_x` + e?.length)).catch(console.error);
-    const 自动上报异常者上报 = async () => await pMap(
-        await db.上报者状态.聚合([
-            { $match: { batchno: { $ne: 今日批号获取() }, 计划于: 较早于(0), 自动: true } }, { $sample: { size: 100 } }
-        ]).toArray(),
-        状态上报更新, { concurrency: 3, stopOnError: false }).then(e => (`✅自动上报异常者上报_x` + e?.length)).catch(console.error);
+    const 自动上报异常者上报 = async () => {
+        console.log('自动上报异常者上报')
+        return await pMap(
+            await db.上报者状态.聚合([
+                { $match: { batchno: { $ne: 今日批号获取() }, 计划于: 较早于(0), 自动: true } }, { $sample: { size: 100 } }
+            ]).toArray(),
+            状态上报更新, { concurrency: 3, stopOnError: false }).then(e => (`✅自动上报异常者上报_x` + e?.length)).catch(console.error);
+    };
     const 保护上报异常者上报 = async () => await pMap(
         await db.上报者状态.聚合([
             { $match: { batchno: { $ne: 今日批号获取() }, 计划于: 较早于(0), 保护: true } }, { $sample: { size: 100 } }
@@ -278,7 +292,7 @@ export async function 自动上报警报流程() {
     console.log('上报者添加', await 系统.上报者添加(理院17列表));
     const 启动时刻 = +new Date()
     while (+new Date() - 启动时刻 < 3600e3) { //运行1小时后退出，由docker来自动重启
-        console.log('旧信息抓取更新通知', await 系统.旧信息抓取更新通知());
+        // console.log('旧信息抓取更新通知', await 系统.旧信息抓取更新通知());
         console.log('自动上报异常者状态抓取更新', await 系统.自动上报异常者状态抓取更新())
         console.log('上报异常者状态抓取更新', await 系统.上报异常者状态抓取更新())
         console.log('自动上报异常者上报', await 系统.自动上报异常者上报())

@@ -1,14 +1,18 @@
 {
-  "verbose": true,
+  "_ref": "https://dev.to/oieduardorabelo/nodejs-with-typescript-debug-inside-vscode-and-nodemon-23o7",
+  "watch": [
+    "src"
+  ],
+  "restartable": "rs",
+  "ext": "tsx,ts,json",
   "ignore": [
     "src/**/*.spec.ts"
   ],
-  "watch": [
-    "src/**/*.ts",
-    "src/**/*.mjs"
-  ],
   "execMap": {
-    "_ts": "node --inspect=0.0.0.0:9229 --nolazy -r ts-node/register",
-    "ts": "node --loader ts-node/esm"
+    "ts": "node --inspect --loader ts-node/esm --experimental-specifier-resolution=node",
+    "mjs": "node --inspect --loader esm --experimental-specifier-resolution=node"
+  },
+  "env": {
+    "NODE_ENV": "development"
   }
 }
