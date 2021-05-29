@@ -6,8 +6,11 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "ci": "git push root@calif.snomiao.com:/root/xgfy-report.git && ssh root@calif.snomiao.com rm -rf /root/xgfy-report/ && ssh root@calif.snomiao.com git clone /root/xgfy-report.git && scp .env root@calif.snomiao.com:/root/xgfy-report/ && ssh root@calif.snomiao.com bash /root/xgfy-report/ci-remote.sh",
     "start": "node --experimental-specifier-resolution=node .",
+    "build:start": "npm run build:js && npm run start",
+    "build:start:watch": "nodemon -x npm run build:start",
+    "_start": "node --experimental-specifier-resolution=node .",
+    "ci": "ci.bat",
     "tsc": "tsc --noEmit",
     "tsc:w": "npm run tsc -- --watch",
     "build:types": "tsc --emitDeclarationOnly",

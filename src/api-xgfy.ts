@@ -34,7 +34,7 @@ const 理院17列表 = 列差([
 // main && console.assert(await getMyReport(3032))
 // main && console.assert(await todayReport(3032))
 
-export const 状态向上报数据转换 = async (最新状态) => {
+export const 上报数据由状态转换 = (最新状态: any) => {
     const 捕获请求 = { "usercode": "str", "username": "str", "usertype": 2, "jiguan": 3, "deptno": "201100", "wendu": 0, "ksfl": 0, "mjjcqzhz": 0, "qwhtjzgfxdq": 0, "tzrqwhtjzgfxdq": 0, "position": "上海-上海", "inschool": 0, "szdsfzgfxdq": 0, "szdssfyzgfxdq": 0, "cfsj": "请选择", "drwf": 0, "mdd": "请选择", "sy": null, "jtgj": 0, "jtcc": null, "remarks": "", "currentsituation": 3 };
     const 正上报数据 = 表键筛(列含值否([
         "usercode", "username", "usertype", "jiguan", "deptno", "wendu", "ksfl", "mjjcqzhz", "qwhtjzgfxdq",
@@ -54,7 +54,9 @@ export const 状态向上报数据转换 = async (最新状态) => {
 export const 上报检查 = async (学号) => (await getMyLatestReport(学号)).batchno === 今日batchno获取()
 
 async function 上报并检查(学号) {
-    await todayReport(状态向上报数据转换(await getMyLatestReport(学号)))
+    const 数据 = await 上报数据由状态转换(await getMyLatestReport(学号))
+    console.log(数据)
+    await todayReport(数据)
     return (await getMyLatestReport(学号)).batchno === 今日batchno获取()
 }
 
@@ -63,5 +65,7 @@ main && console.log('\n\ntests started\n\n')
 main && 相等断言((await selectByCode('3032')).name, '黄丽')
 main && 相等断言((await getMyLatestReport('3032')).username, '黄丽')
 main && 相等断言((await 上报检查('1712211139')), true)
-main && 相等断言((await 上报检查('1712211136')), false)
+main && 相等断言((await 上报并检查('1712211136')), true)
+main && 相等断言((await 上报检查('1712211136')), true)
+main && 相等断言((await 上报检查('1712211135')), false)
 main && console.log('\n\ntests all done\n\n')
