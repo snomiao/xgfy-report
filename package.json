@@ -21,7 +21,7 @@
     "build+major": "npm run build && npm version major",
     "bundle": "rollup -c",
     "bundle:watch": "rollup -c --watch",
-    "postversion": "ci.bat && git push --follow-tags",
+    "postversion": "git push --follow-tags && ci.bat",
     "publishOnly": ""
   },
   "repository": {
