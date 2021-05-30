@@ -3,4 +3,4 @@ setTimeout(() => process.exit(), 51 * 60e3) // 51 分钟后退出，让docker来
 
 import loop from "./自动上报";
 
-loop()
+await loop()
