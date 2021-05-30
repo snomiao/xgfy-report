@@ -17,6 +17,7 @@ if (main) {
 }
 
 export default async function loop() {
+    console.log('上报开始')
     console.log(await 用户信息更新())
     console.log(await 自动上报状态检查())
     console.log('上报done')
