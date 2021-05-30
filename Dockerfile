@@ -6,6 +6,7 @@ ADD package*.json ./
 RUN npm ci
 
 ADD src src
+RUN mkdir lib
 # RUN npm run build
 
 ADD .env /app/

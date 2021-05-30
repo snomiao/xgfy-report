@@ -6,4 +6,3 @@ docker run -d \
     --restart=always \
     -v /root/xgfy-report/.env:/app/.env \
     xgfy_report
-watch docker logs -t xgfy_report
