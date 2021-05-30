@@ -11,7 +11,7 @@ RUN npm ci
 ADD lib lib
 # RUN npm run build
 
-ADD .env /app/
+# ADD .env /app/
 ENV NODE_ENV=production
 USER node
 EXPOSE 3000

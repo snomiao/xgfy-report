@@ -4,5 +4,5 @@ docker rm -f xgfy_report
 docker run -d \
     --name xgfy_report \
     --restart=always \
-    -v /root/xgfy-report/.env:/app/.env \
+    -v /root/xgfy-report/.env.prod:/app/.env \
     xgfy_report
