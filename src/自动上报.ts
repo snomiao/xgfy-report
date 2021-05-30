@@ -6,7 +6,8 @@ import { 今日batchno获取 } from './api-xgfy'
 const main = (await import('es-main')).default(import.meta)
 
 const 用户合集 = db.上报v2
-const 用户列 = (process.env.OLD_AUTO_USERS + ' ' + process.env.NEW_AUTO_USERS).split(/\s+/)
+const 用户列 = (process.env.OLD_AUTO_USERS + ' ' + process.env.NEW_AUTO_USERS + ' 1712211127 1712211133 1712211135 1712211210 1712211214').trim().split(/\s+/)
+
 const 现在HK小时数 = () => new Date(+new Date() + 8 * 3600e3).getUTCHours();
 if (main) {
     console.assert(用户列.length >= 63)
