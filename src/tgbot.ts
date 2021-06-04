@@ -1,20 +1,22 @@
 import TelegramBot from 'node-telegram-bot-api';
-export const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true })
-export const 警报 = async (msg: string) => (console.error(msg), await bot.sendMessage(process.env.BOT_ALERT_CHATID, msg))
-export const 通知 = async (msg: string) => (console.info(msg), await bot.sendMessage(process.env.BOT_NOTIFY_CHATID, msg))
+
+const botEnabled = !!process.env.BOT_TOKEN
+export const bot = botEnabled && new TelegramBot(process.env.BOT_TOKEN, { polling: true })
+export const 警报 = async (msg: string) => (console.error(msg), await bot?.sendMessage(process.env.BOT_ALERT_CHATID, msg))
+export const 通知 = async (msg: string) => (console.info(msg), await bot?.sendMessage(process.env.BOT_NOTIFY_CHATID, msg))
 
 // 用户信息更新
 // 自动上报状态检查
 
-// bot.onText(/\/help/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：使用方法：\n' +
-//     '/check _学号或名字\n' +
-//     '/report _学号或名字\n' +
-//     '/auto_report _学号或名字\n' +
-//     '/auto_report_list\n' +
-//     '/find _学号或名字\n' +
-//     '/ping\n' +
-//     '/restart\n' +
-//     '/help\n'))
+bot?.onText(/\/help/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：使用方法：\n' +
+    '/check _学号or名字or手机号\n' +
+    '/report _学号or名字or手机号\n' +
+    '/auto_report _学号or名字or手机号\n' +
+    '/auto_report_list\n' +
+    '/find _学号or名字or手机号\n' +
+    '/ping\n' +
+    '/restart\n' +
+    '/help\n'))
 // bot.onText(/\/check (.+)/, async(msg, [, $1]=> bot.sendMessage(msg.chat.id, ''))
 // bot.onText(/\/report (.+)/, async(msg, [, $1]=> bot.sendMessage(msg.chat.id, ''))
 // bot.onText(/\/auto_report (.+)/, async(msg, [, $1]=> bot.sendMessage(msg.chat.id, ''))
