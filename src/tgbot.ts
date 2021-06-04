@@ -1,4 +1,5 @@
 import TelegramBot from 'node-telegram-bot-api';
+import { auto_report, check, find } from './自动上报';
 
 const botEnabled = !!process.env.BOT_TOKEN
 export const bot = botEnabled && new TelegramBot(process.env.BOT_TOKEN, { polling: true })
@@ -19,7 +20,11 @@ bot?.onText(/\/help/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id,
     '/ping\n' +
     '/restart\n' +
     '/help\n'))
-// bot.onText(/\/check (.+)/, async(msg, [, $1]=> bot.sendMessage(msg.chat.id, ''))
+bot.onText(/\/check\s?(.*)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await check($1.trim().split(' ')).catch(e => e.toString())))
+bot.onText(/\/auto_report\s?(.*)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await auto_report($1.trim().split(' ')).catch(e => e.toString())))
+bot.onText(/\/find\s?(.*)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await find($1.trim().split(' ')).catch(e => e.toString())))
+bot.onText(/\/restart/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：5s后重启……').then(() => setTimeout(() => process.exit(0), 5e3)))
+bot.onText(/\/ping/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵！'))
 // bot.onText(/\/report (.+)/, async(msg, [, $1]=> bot.sendMessage(msg.chat.id, ''))
 // bot.onText(/\/auto_report (.+)/, async(msg, [, $1]=> bot.sendMessage(msg.chat.id, ''))
 // bot.onText(/\/auto_report_list (.+)/, async(msg, [, $1]=> bot.sendMessage(msg.chat.id, ''))
@@ -39,5 +44,4 @@ bot?.onText(/\/help/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id,
 // bot.onText(/\/上报检查 (.+)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await 上报检查($1.trim())))
 // bot.onText(/\/上报 (.+)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await 上报($1.trim())))
 // bot.onText(/\/找 (.+)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await 找($1.trim()).catch(e => e.toString())))
-// bot.onText(/\/重启/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：5s后重启……').then(() => setTimeout(() => process.exit(0), 5e3)))
-// bot.onText(/\/ping/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵！'))
+
