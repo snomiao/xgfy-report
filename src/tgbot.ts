@@ -3,8 +3,8 @@ import { auto_report, check, find } from './自动上报';
 
 const botEnabled = !!process.env.BOT_TOKEN
 export const bot = botEnabled && new TelegramBot(process.env.BOT_TOKEN, { polling: true })
-export const 警报 = async (msg: string) => (console.error(msg), await bot?.sendMessage(process.env.BOT_ALERT_CHATID, msg))
-export const 通知 = async (msg: string) => (console.info(msg), await bot?.sendMessage(process.env.BOT_NOTIFY_CHATID, msg))
+// export const 警报 = async (msg: string) => (console.error(msg), await bot?.sendMessage(process.env.BOT_ALERT_CHATID, msg))
+// export const 通知 = async (msg: string) => (console.info(msg), await bot?.sendMessage(process.env.BOT_NOTIFY_CHATID, msg))
 console.log({ botEnabled });
 
 bot?.sendMessage(process.env.BOT_NOTIFY_CHATID, new Date().toISOString() + '上报系统启动！')
