@@ -21,9 +21,9 @@ bot?.onText(/\/help/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id,
     '/ping\n' +
     '/restart\n' +
     '/help\n'))
-bot.onText(/\/check\s?(.*)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await check($1.trim().split(' ')).catch(e => e.toString())))
-bot.onText(/\/auto_report\s?(.*)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await auto_report($1.trim().split(' ')).catch(e => e.toString())))
-bot.onText(/\/find\s?(.*)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await find($1.trim().split(' ')).catch(e => e.toString())))
+bot.onText(/\/check\s?(.*)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await check($1).catch(e => e.toString())))
+bot.onText(/\/auto_report\s?(.*)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await auto_report($1).catch(e => e.toString())))
+bot.onText(/\/find\s?(.*)/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：' + await find($1).catch(e => e.toString())))
 bot.onText(/\/restart/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：5s后重启……').then(() => setTimeout(() => process.exit(0), 5e3)))
 bot.onText(/\/ping/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵！'))
 // bot.onText(/\/report (.+)/, async(msg, [, $1]=> bot.sendMessage(msg.chat.id, ''))

@@ -54,7 +54,7 @@ function 用户$match(s: any): object {
                 { "个人信息.code": s },
                 { "个人信息.mobile": new RegExp(s) },
                 { "个人信息.address": new RegExp(s) },
-                ...(!!s.match(/自动|auto/) ? [{ "自动上报": true }] : []),
+                ...(!!s?.match(/自动|auto/) ? [{ "自动上报": true }] : []),
             ]
         }
     };
