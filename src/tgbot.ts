@@ -5,14 +5,16 @@ export const bot = botEnabled && new TelegramBot(process.env.BOT_TOKEN, { pollin
 export const 警报 = async (msg: string) => (console.error(msg), await bot?.sendMessage(process.env.BOT_ALERT_CHATID, msg))
 export const 通知 = async (msg: string) => (console.info(msg), await bot?.sendMessage(process.env.BOT_NOTIFY_CHATID, msg))
 
+bot?.sendMessage(process.env.BOT_NOTIFY_CHATID, new Date().toISOString() + '上报系统启动！')
 // 用户信息更新
 // 自动上报状态检查
 
 bot?.onText(/\/help/, async (msg, [_, $1]) => await bot.sendMessage(msg.chat.id, '喵：使用方法：\n' +
     '/check _学号or名字or手机号\n' +
-    '/report _学号or名字or手机号\n' +
+    // '/check _学号or名字or手机号\n' +
+    // '/report _学号or名字or手机号\n' +
     '/auto_report _学号or名字or手机号\n' +
-    '/auto_report_list\n' +
+    // '/auto_report_list\n' +
     '/find _学号or名字or手机号\n' +
     '/ping\n' +
     '/restart\n' +
